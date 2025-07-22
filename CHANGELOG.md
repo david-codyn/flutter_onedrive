@@ -22,3 +22,7 @@
 * Added file deletion
 * Added create directory
 * Added get file metadata
+
+## 1.8.1
+
+* Fixed: Use "Back" button will return AuthorizationException.

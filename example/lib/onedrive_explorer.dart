@@ -15,10 +15,10 @@ class OnedriveExplorerPage extends StatefulWidget {
   const OnedriveExplorerPage({super.key, required this.oneDrive});
 
   @override
-  _OnedriveExplorerPageState createState() => _OnedriveExplorerPageState();
+  OnedriveExplorerPageState createState() => OnedriveExplorerPageState();
 }
 
-class _OnedriveExplorerPageState extends State<OnedriveExplorerPage> {
+class OnedriveExplorerPageState extends State<OnedriveExplorerPage> {
   String currentPath = '/';
   List<OnedriveFile> files = [];
   bool isLoading = false;
@@ -181,8 +181,13 @@ class _OnedriveExplorerPageState extends State<OnedriveExplorerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: currentPath == '/' || currentPath.isEmpty,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _goOneLevelUp();
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Text('OneDrive Explorer: $currentPath'),
@@ -238,15 +243,6 @@ class _OnedriveExplorerPageState extends State<OnedriveExplorerPage> {
     }
     // fallback for older devices
     return await Permission.storage.request().isGranted;
-  }
-
-  Future<bool> _onWillPop() async {
-    if (currentPath == '/' || currentPath.isEmpty) {
-      return true;
-    } else {
-      _goOneLevelUp();
-      return false;
-    }
   }
 
   void _goOneLevelUp() {

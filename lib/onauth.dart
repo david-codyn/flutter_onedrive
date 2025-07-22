@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:oauth2/oauth2.dart' show AuthorizationException;
 import 'package:oauth_webauth/oauth_webauth.dart';
 // import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 // import 'package:http/http.dart' as http;
@@ -80,6 +81,11 @@ class OAuth2Helper {
           // },
         ),
       );
+
+      if (result is AuthorizationException) {
+        // If click "Back" button on the web page, result is AuthorizationException
+        return null;
+      }
 
       return result;
     } catch (err) {
