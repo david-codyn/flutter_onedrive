@@ -2,6 +2,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_onedrive/onauth.dart';
 import 'package:flutter_onedrive/onedrive_response.dart';
 // import 'package:flutter_web_auth/flutter_web_auth.dart';
 import 'package:http/http.dart' as http;
+
 import 'onedrive_file.dart';
 import 'token.dart';
 
@@ -24,7 +26,8 @@ class OneDrive with ChangeNotifier {
   static const permissionFilesReadWriteAppFolder = "Files.ReadWrite.AppFolder";
   static const permissionFilesReadWriteAll = "Files.ReadWrite.All";
   static const permissionOfflineAccess = "offline_access";
-
+  
+  late final String _drivePath;
   late final ITokenManager _tokenManager;
   late final String redirectURL;
   final String scopes;
@@ -37,9 +40,11 @@ class OneDrive with ChangeNotifier {
     required this.redirectURL,
     this.scopes = "$permissionFilesReadWriteAll $permissionOfflineAccess",
     this.state = "OneDriveState",
+    String? drivePath,
     ITokenManager? tokenManager,
   }) {
     // redirectURL = "$callbackSchema://auth";
+    _drivePath = drivePath ?? "me/";
     _tokenManager = tokenManager ??
         DefaultTokenManager(
           tokenEndpoint: tokenEndpoint,
@@ -55,15 +60,6 @@ class OneDrive with ChangeNotifier {
   }
 
   Future<bool> connect(BuildContext context) async {
-// Construct the url
-    // final authUrl = Uri.https(authHost, authEndpoint, {
-    //   'response_type': 'code',
-    //   'client_id': clientID,
-    //   'redirect_uri': redirectURL,
-    //   'scopes': scope,
-    //   'state': state,
-    // });
-
     try {
 // construct auth uri
       final authUri = Uri.https(authHost, authEndpoint, {
@@ -120,7 +116,7 @@ class OneDrive with ChangeNotifier {
       await getMetadata(remotePath, isAppFolder: isAppFolder);
     }
 
-    final url = Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/content");
+    final url = Uri.parse("$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}:$remotePath:/content");
 
     try {
       final resp = await http.get(
@@ -177,7 +173,7 @@ class OneDrive with ChangeNotifier {
 // https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
     var now = DateTime.now();
     var url =
-        Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
+        Uri.parse("$apiEndpoint/${_drivePath}drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
     var resp = await http.post(
       url,
       headers: {"Authorization": "Bearer $accessToken"},
@@ -258,7 +254,7 @@ class OneDrive with ChangeNotifier {
 // https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
       var now = DateTime.now();
       var url =
-          Uri.parse("$apiEndpoint/me/drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
+          Uri.parse("$apiEndpoint/${_drivePath}drive/${_getRootFolder(isAppFolder)}:$remotePath:/createUploadSession");
       var resp = await http.post(
         url,
         headers: {"Authorization": "Bearer $accessToken"},
@@ -331,7 +327,7 @@ class OneDrive with ChangeNotifier {
       return Uint8List(0);
     }
 
-    final url = Uri.parse("${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}");
+    final url = Uri.parse("$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}");
 
     try {
       final resp = await http.get(
@@ -365,7 +361,7 @@ class OneDrive with ChangeNotifier {
 
     final encodedPath = Uri.encodeComponent(path);
     final url = Uri.parse(
-      "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:/$encodedPath:/children${recursive ? '?\$expand=children' : ''}",
+      "$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}:/$encodedPath:/children${recursive ? '?\$expand=children' : ''}",
     );
 
     final response = await http.get(
@@ -394,7 +390,7 @@ class OneDrive with ChangeNotifier {
 
     final encodedPath = Uri.encodeComponent(path);
     final url = Uri.parse(
-      "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:/$encodedPath",
+      "$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}:/$encodedPath",
     );
 
     try {
@@ -445,9 +441,9 @@ class OneDrive with ChangeNotifier {
 
     final url = parentPath.isEmpty
         ? Uri.parse(
-            "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}/children")
+            "$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}/children")
         : Uri.parse(
-            "${apiEndpoint}me/drive/${_getRootFolder(isAppFolder)}:/$parentPath:/children");
+            "$apiEndpoint${_drivePath}drive/${_getRootFolder(isAppFolder)}:/$parentPath:/children");
     try {
       final resp = await http.post(
         url,
