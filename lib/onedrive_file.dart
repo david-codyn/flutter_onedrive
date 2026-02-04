@@ -6,22 +6,24 @@ class OnedriveFile {
   final String path;
   final bool isFolder;
   final int size;
+  final String downloadUrl;
   final DateTime modifiedTime;
 
   OnedriveFile(
       {required this.id,
-        required this.name,
-        required this.path,
-        required this.isFolder,
-        required this.size,
-        required this.modifiedTime});
+      required this.name,
+      required this.path,
+      required this.isFolder,
+      required this.size,
+      required this.downloadUrl,
+      required this.modifiedTime});
 
   factory OnedriveFile.fromJson(Map<String, dynamic> json, bool isAppFolder) {
     final rawPath = json['parentReference']?['path'] ?? '';
     String path = '/';
     if (isAppFolder) {
       final match =
-      RegExp(r'^/drive/root:/Apps/[^/]+(/.*)?$').firstMatch(rawPath);
+          RegExp(r'^/drive/root:/Apps/[^/]+(/.*)?$').firstMatch(rawPath);
       path = match?.group(1) ??
           '/'; // relative path to Appfolder, turns /Apps/APP_NAME to /
     } else {
@@ -36,6 +38,7 @@ class OnedriveFile {
         path: path,
         isFolder: json['folder'] != null,
         size: json['size'] ?? 0,
+        downloadUrl: json['@microsoft.graph.downloadUrl'] ?? '',
         modifiedTime: DateTime.tryParse(json['3'] ?? '') ??
             DateTime.fromMillisecondsSinceEpoch(0));
   }
